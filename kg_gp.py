@@ -38,7 +38,6 @@ for epoch in range(NUM_EPOCHS):
 from botorch.acquisition import qKnowledgeGradient
 
 
-NUM_FANTASIES = 128 if not SMOKE_TEST else 4
 qKG = qKnowledgeGradient(model, num_fantasies=1)
 test_X=torch.tensor([[[0.8754, 0.9025, 0.5862, 0.1580, 0.3266, 0.7930]],
 
@@ -59,6 +58,7 @@ test_X=torch.tensor([[[0.8754, 0.9025, 0.5862, 0.1580, 0.3266, 0.7930]],
         [[0.5914, 0.8657, 0.4393, 0.6715, 0.7866, 0.7446]],
 
         [[0.6269, 0.9950, 0.0640, 0.4415, 0.1140, 0.6024]]])
+test_X = test_X.squeeze(-2)
 with torch.no_grad():
     kg = qKG(test_X)
 print(kg)

@@ -12,6 +12,8 @@ from torch import tensor
 import numpy as np
 from abc import ABC
 import gpytorch
+from gpytorch.priors.torch_priors import GammaPrior
+
 
 
 
@@ -28,12 +30,22 @@ train_y = neg_hartmann6(train_x).unsqueeze(-1)
 class ExactGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):
         super(ExactGPModel, self).__init__(train_x, train_y, likelihood)
-        self.mean_module = gpytorch.means.ConstantMean()
+        self.mean_module = gpytorch.means.ConstantMean(batch_shape=torch.Size([]))
         # batch_shape=torch.Size([config.BATCH])
+        # self.covar_module = gpytorch.kernels.ScaleKernel(
+        #     gpytorch.kernels.RBFKernel()
+        #     # batch_shape=torch.Size([config.BATCH])
+        # )
         self.covar_module = gpytorch.kernels.ScaleKernel(
-            gpytorch.kernels.RBFKernel()
-            # batch_shape=torch.Size([config.BATCH])
-        )
+                gpytorch.kernels.MaternKernel(
+                    nu=2.5,
+                    ard_num_dims=train_x.shape[-1],
+                    batch_shape=torch.Size([]),
+                    lengthscale_prior=GammaPrior(3.0, 6.0),
+                ),
+                batch_shape=torch.Size([]),
+                outputscale_prior=GammaPrior(2.0, 0.15),
+            )
 
     def forward(self, x):
         mean_x = self.mean_module(x) #101
